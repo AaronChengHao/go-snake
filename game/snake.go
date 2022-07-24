@@ -2,7 +2,6 @@ package game
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/wav"
@@ -27,16 +26,19 @@ var (
 	down    int8  = 2
 	left    int8  = 3
 	right   int8  = 4
-	stepNum int64 = 20
-	nodeW   int64 = 20
-	nodeH   int64 = 20
+	stepNum int64 = 30
+	nodeW   int64 = 30
+	nodeH   int64 = 30
 )
 
 var direction int8 = right
+var snakeHeadImg *ebiten.Image
+var bgImg *ebiten.Image
+var foodImg *ebiten.Image
 
 const (
-	WindowW    = 640
-	WindowH    = 640
+	WindowW    = 660
+	WindowH    = 660
 	sampleRate = 48000
 )
 
@@ -61,33 +63,15 @@ func (g *Game) Update() error {
 		direction = right
 	}
 
-	//if inpututil.IsKeyJustPressed(ebiten.KeyP) {
-	//	// As audioPlayer has one stream and remembers the playing position,
-	//	// rewinding is needed before playing when reusing audioPlayer.
-	//	err := g.audioPlayer.Rewind()
-	//	if err != nil {
-	//		return err
-	//	}
-	//	g.audioPlayer.Play()
-	//}
 	return nil
 }
 
-var (
-	ebitenImage *ebiten.Image
-	colors      = []color.RGBA{
-		{0xff, 0xff, 0xff, 0xff},
-		{0xff, 0xff, 0x0, 0xff},
-	}
-)
-
 func drawText(screen *ebiten.Image) {
-
 	if x > WindowW || y > WindowH {
 		x = 0
 		y = 0
 	}
-	ebitenutil.DebugPrintAt(screen, "程睿曦 程睿懿", x, y)
+	ebitenutil.DebugPrintAt(screen, "RUI_XI RUI_YI", x, y)
 
 }
 
@@ -103,23 +87,23 @@ func (g *Game) DrawFood(screen *ebiten.Image) {
 		}
 	}
 
-	foodImg := ebiten.NewImage(20, 20)
-	foodImg.Fill(color.White)
 	op := &ebiten.DrawImageOptions{}
-
+	op.GeoM.Scale(float64(30)/float64(322), float64(30)/float64(322))
 	op.GeoM.Translate(float64(g.food.x), float64(g.food.y))
 	screen.DrawImage(foodImg, op)
 }
 
 func (g *Game) isEatFood(screen *ebiten.Image) bool {
-	if (g.head.X >= g.food.x && g.head.X <= g.food.x+nodeW) && (g.head.Y >= g.food.y && g.head.Y <= g.food.y+nodeH) {
-		util.AddNode(g.head)
-		g.food = nil
-		g.DrawFood(screen)
-
-		_ = g.audioPlayer.Rewind()
-		g.audioPlayer.Play()
+	if g.food != nil {
+		if (g.head.X >= g.food.x && g.head.X <= g.food.x+nodeW) && (g.head.Y >= g.food.y && g.head.Y <= g.food.y+nodeH) {
+			util.AddNode(g.head)
+			g.food = nil
+			g.DrawFood(screen)
+			_ = g.audioPlayer.Rewind()
+			g.audioPlayer.Play()
+		}
 	}
+
 	return true
 }
 
@@ -131,19 +115,24 @@ func printNodeCount(node *util.Node) int {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// 设置背景色
-	screen.Fill(color.NRGBA{G: 0x40, B: 0x80, A: 0xff})
-	time.Sleep(time.Millisecond * 100)
+	time.Sleep(time.Millisecond * 150)
+	// 是否吃到食物
+	g.isEatFood(screen)
+	// 移动蛇头
+	moveSnakeHead(g.head)
+	// 画背景
+	drawBG(screen)
 	// 画食物
 	g.DrawFood(screen)
-	// 判断蛇头师傅吃到食物了
-	g.isEatFood(screen)
-
 	// 画文本
 	drawText(screen)
+	// 画蛇头
+	drawSnakeHead(g.head, screen)
+	// 画蛇身
+	drawSnakeBody(g.head.Child, screen)
+}
 
-	node := g.head
-
+func moveSnakeHead(node *util.Node) {
 	node.OldX = node.X
 	node.OldY = node.Y
 	switch direction {
@@ -165,18 +154,26 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		node.Y = 0
 		direction = right
 	}
-
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(float64(node.X), float64(node.Y))
-
-	nodeImg := ebiten.NewImage(int(nodeW), int(nodeH))
-	nodeImg.Fill(node.Color)
-	fmt.Println(node.Color)
-	screen.DrawImage(nodeImg, op)
-	drawSnake(g.head.Child, screen)
 }
 
-func drawSnake(node *util.Node, screen *ebiten.Image) bool {
+func drawBG(screen *ebiten.Image) bool {
+	// 设置背景色
+	//screen.Fill(color.NRGBA{G: 0x40, B: 0x80, A: 0xff})
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(float64(WindowW)/float64(850), float64(WindowH)/float64(850))
+	screen.DrawImage(bgImg, op)
+	return false
+}
+
+func drawSnakeHead(node *util.Node, screen *ebiten.Image) bool {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(float64(30)/float64(700), float64(30)/float64(700))
+	op.GeoM.Translate(float64(node.X), float64(node.Y))
+	screen.DrawImage(snakeHeadImg, op)
+	return true
+}
+
+func drawSnakeBody(node *util.Node, screen *ebiten.Image) bool {
 	if node != nil {
 		node.OldX = node.X
 		node.OldY = node.Y
@@ -185,14 +182,12 @@ func drawSnake(node *util.Node, screen *ebiten.Image) bool {
 		node.Y = node.Parent.OldY
 
 		op := &ebiten.DrawImageOptions{}
+
+		op.GeoM.Scale(float64(30)/float64(322), float64(30)/float64(322))
 		op.GeoM.Translate(float64(node.X), float64(node.Y))
+		screen.DrawImage(foodImg, op)
 
-		nodeImg := ebiten.NewImage(int(nodeW), int(nodeH))
-		nodeImg.Fill(node.Color)
-		// 画
-		screen.DrawImage(nodeImg, op)
-
-		return drawSnake(node.Child, screen)
+		return drawSnakeBody(node.Child, screen)
 	}
 
 	return true
@@ -208,6 +203,7 @@ type Game struct {
 	food         *food
 	audioContext *audio.Context
 	audioPlayer  *audio.Player
+	snakeHead    *ebiten.Image
 }
 
 func NewGame() (*Game, error) {
@@ -233,5 +229,8 @@ func NewGame() (*Game, error) {
 		return nil, err
 	}
 
+	foodImg, _, _ = ebitenutil.NewImageFromFile("assets/ry_food.png")
+	snakeHeadImg, _, _ = ebitenutil.NewImageFromFile("assets/rx_head.png")
+	bgImg, _, _ = ebitenutil.NewImageFromFile("assets/bg.jpeg")
 	return g, nil
 }

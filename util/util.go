@@ -18,7 +18,7 @@ func AddNode(rootNode *Node) bool {
 	if rootNode.Child != nil {
 		return AddNode(rootNode.Child)
 	} else {
-		child := &Node{Color: color.Black}
+		child := &Node{Color: color.White}
 		child.X = rootNode.OldX
 		child.Y = rootNode.OldY
 		child.Parent = rootNode
