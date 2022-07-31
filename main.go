@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/AaronChengHao/gosnake/game"
 	"github.com/hajimehoshi/ebiten/v2"
-	"gosnake/game"
 	"log"
 )
 

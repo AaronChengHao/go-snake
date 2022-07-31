@@ -1,4 +1,4 @@
-module gosnake
+module github.com/AaronChengHao/gosnake
 
 go 1.18
 

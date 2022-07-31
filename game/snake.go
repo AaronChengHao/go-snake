@@ -2,12 +2,12 @@ package game
 
 import (
 	"bytes"
+	"github.com/AaronChengHao/gosnake/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/wav"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"gosnake/util"
 	"image/color"
 	_ "image/jpeg"
 	_ "image/png"
