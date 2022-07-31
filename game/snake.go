@@ -7,12 +7,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/audio/wav"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"gosnake/util"
 	"image/color"
 	_ "image/jpeg"
 	_ "image/png"
 	"io/ioutil"
 	"math/rand"
-	"snake/util"
 	"time"
 )
 

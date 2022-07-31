@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"gosnake/game"
 	"log"
-	"snake/game"
 )
 
 func main() {

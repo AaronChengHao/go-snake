@@ -1,4 +1,4 @@
-module snake
+module gosnake
 
 go 1.18
 
